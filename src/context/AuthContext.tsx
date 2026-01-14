@@ -94,10 +94,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      // Get current origin for email confirmation redirect
+      const redirectTo = `${window.location.origin}/dashboard`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
       });
+
       if (error) throw error;
       if (!data.user) throw new Error('No user returned from signup');
 

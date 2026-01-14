@@ -9,9 +9,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Get the current origin for redirect URL
+const getRedirectUrl = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'https://careconnect-navy.vercel.app'; // fallback
+};
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  }
 );
 
 // Auth helpers
