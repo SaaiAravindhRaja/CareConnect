@@ -30,7 +30,11 @@ export function useInteractions(recipientId: string | undefined) {
     }
   };
 
-  const addInteraction = async (formData: InteractionFormData, photoUrls: string[] = []) => {
+  const addInteraction = async (
+    formData: InteractionFormData,
+    photoUrls: string[] = [],
+    aiInsights?: string
+  ) => {
     if (!recipientId || !caregiver) throw new Error('Missing recipient or caregiver');
     try {
       const interaction = await createInteraction({
@@ -44,6 +48,7 @@ export function useInteractions(recipientId: string | undefined) {
         energy_level: formData.energy_level,
         tags: formData.tags,
         photos: photoUrls,
+        ai_insights: aiInsights,
       });
       setInteractions((prev) => [interaction as Interaction, ...prev]);
       return interaction;

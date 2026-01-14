@@ -158,10 +158,11 @@ export function LogInteraction() {
       const aiInsight = await generateInsightsFromInteraction(tempInteraction as any);
 
       // Create the interaction WITH the AI insight and photos
-      const interaction = await addInteraction({
-        ...formData,
-        ai_insights: aiInsight || undefined,
-      }, uploadedPhotos);
+      const interaction = await addInteraction(
+        formData,
+        uploadedPhotos,
+        aiInsight || undefined
+      );
 
       // Celebrate beautiful moments with confetti!
       const isBeautifulMoment =
