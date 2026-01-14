@@ -4,6 +4,8 @@ import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout/Layout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { MemoryBook } from './pages/MemoryBook';
@@ -45,6 +47,8 @@ export default function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/family/:shareId" element={<FamilyPortal />} />
 
           {/* Protected routes */}

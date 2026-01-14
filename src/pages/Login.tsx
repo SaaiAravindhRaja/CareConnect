@@ -77,17 +77,27 @@ export function Login() {
               />
             </div>
 
-            <div className="relative">
-              <Lock className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
-              <Input
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="pl-10"
-                required
-              />
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
+                <Input
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="pl-10"
+                  required
+                />
+              </div>
+              <div className="mt-2 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-[#D4725A] hover:text-[#C85A44] transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <Button

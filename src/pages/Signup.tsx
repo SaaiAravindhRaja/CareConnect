@@ -28,8 +28,19 @@ export function Signup() {
       return;
     }
 
-    if (password.length < 6) {
-      setFormError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setFormError('Password must be at least 8 characters');
+      return;
+    }
+
+    // Strong password validation
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      setFormError('Password must contain uppercase, lowercase, number, and special character');
       return;
     }
 
