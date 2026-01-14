@@ -10,25 +10,25 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-semibold rounded-2xl transition-all duration-400 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]';
+      'inline-flex items-center justify-center font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed';
 
     const variants = {
       primary:
-        'bg-gradient-to-br from-[#D4725A] via-[#C85A44] to-[#A8472F] text-white hover:shadow-[0_12px_28px_-8px_rgba(212,114,90,0.4),0_6px_12px_-6px_rgba(212,114,90,0.3)] focus:ring-[#D4725A] shadow-[0_6px_16px_-6px_rgba(212,114,90,0.25)] hover:from-[#E8936D] hover:via-[#D4725A] hover:to-[#C85A44]',
+        'bg-[#0071e3] text-white hover:bg-[#0077ed] focus:ring-[#0071e3] shadow-sm',
       secondary:
-        'bg-gradient-to-br from-[#8B9A7C] to-[#6F7D63] text-white hover:shadow-[0_12px_28px_-8px_rgba(139,154,124,0.4)] focus:ring-[#8B9A7C] shadow-[0_4px_12px_-4px_rgba(139,154,124,0.25)] hover:from-[#A8B89C] hover:to-[#8B9A7C]',
+        'bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7] focus:ring-[#86868b]',
       outline:
-        'border-2 border-[#D4725A]/30 text-[#5C5550] hover:border-[#D4725A] hover:bg-[#FEF8F5] hover:text-[#C85A44] focus:ring-[#D4725A] backdrop-blur-sm',
+        'border border-[#d2d2d7] text-[#0071e3] hover:border-[#0071e3] hover:bg-transparent focus:ring-[#0071e3] bg-transparent',
       ghost:
-        'text-[#5C5550] hover:bg-[#F8F6F2] hover:text-[#D4725A] focus:ring-[#D4725A]/30',
+        'text-[#0071e3] hover:bg-[#e8e8ed]/50 hover:text-[#0077ed] focus:ring-[#0071e3]/30',
       danger:
-        'bg-gradient-to-br from-red-500 to-red-600 text-white hover:shadow-[0_12px_28px_-8px_rgba(239,68,68,0.4)] focus:ring-red-500 shadow-[0_4px_12px_-4px_rgba(239,68,68,0.25)]',
+        'bg-[#ff3b30] text-white hover:bg-[#ff453a] focus:ring-[#ff3b30] shadow-sm',
     };
 
     const sizes = {
-      sm: 'text-sm px-4 py-2',
-      md: 'text-sm px-6 py-3',
-      lg: 'text-base px-8 py-4',
+      sm: 'text-[12px] px-3 py-1.5',
+      md: 'text-[14px] px-5 py-2.5',
+      lg: 'text-[17px] px-7 py-3.5',
     };
 
     return (

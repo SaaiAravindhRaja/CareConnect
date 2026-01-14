@@ -38,97 +38,80 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-xl border-b-2 border-[#D4725A]/10 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-[#f5f5f7]/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
-          {/* Elegant Logo */}
+        <div className="flex justify-between h-[80px] items-center">
+          {/* Minimal Logo */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4725A] to-[#C85A44] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <span className="font-bold text-2xl bg-gradient-to-r from-[#D4725A] to-[#C85A44] bg-clip-text text-transparent tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+            <Link to="/dashboard" className="flex items-center gap-2 group">
+              <Heart className="h-4 w-4 text-[#1d1d1f]" fill="#1d1d1f" />
+              <span className="font-semibold text-[17px] text-[#1d1d1f] tracking-tight">
                 CareConnect
               </span>
             </Link>
           </div>
 
-          {/* Elegant Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-[60px]">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300',
-                    isActive
-                      ? 'bg-gradient-to-br from-[#FBDDD0] to-[#FDEEE7] text-[#D4725A] shadow-md'
-                      : 'text-[#5C5550] hover:bg-[#FEF8F5] hover:text-[#D4725A]'
+                    'text-[14px] text-[#1d1d1f]/80 hover:text-[#0071e3] transition-colors',
+                    isActive && 'text-[#1d1d1f]'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );
             })}
           </div>
 
-          {/* Refined User Menu */}
+          {/* Use Menu */}
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-[#2D312A]">{caregiver?.name}</p>
-                <p className="text-xs text-[#5C5550]/60">{caregiver?.role || 'Caregiver'}</p>
-              </div>
-              <Avatar fallback={caregiver?.name} size="sm" className="ring-2 ring-[#D4725A]/20" />
+              <span className="text-[14px] text-[#1d1d1f] hover:text-[#1d1d1f]/70 transition-colors cursor-pointer">
+                {caregiver?.name}
+              </span>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="hidden md:flex hover:bg-[#FEF8F5]">
-              <LogOut className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="hidden md:flex hover:bg-black/5 rounded-full p-2">
+              <LogOut className="h-4 w-4 text-[#1d1d1f]" />
             </Button>
 
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-2xl text-[#5C5550] hover:bg-[#FEF8F5] transition-colors"
+              className="md:hidden p-2 text-[#1d1d1f]"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Beautiful Mobile Menu */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t-2 border-[#D4725A]/10 bg-white/95 backdrop-blur-xl">
-          <div className="px-4 py-4 space-y-2">
+        <div className="md:hidden border-t border-[#d2d2d7] bg-[#f5f5f7] absolute w-full left-0 z-50 shadow-lg">
+          <div className="px-8 py-8 space-y-4">
             {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300',
-                    isActive
-                      ? 'bg-gradient-to-br from-[#FBDDD0] to-[#FDEEE7] text-[#D4725A] shadow-md'
-                      : 'text-[#5C5550] hover:bg-[#FEF8F5] hover:text-[#D4725A]'
-                  )}
+                  className="block text-[28px] font-bold text-[#1d1d1f] leading-tight hover:text-[#1d1d1f]/70 transition-colors"
                 >
-                  <Icon className="h-5 w-5" />
                   {item.label}
                 </Link>
               );
             })}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-red-600 hover:bg-red-50 w-full transition-all"
+              className="block text-[17px] text-[#1d1d1f] mt-8 pt-8 border-t border-[#d2d2d7] w-full text-left"
             >
-              <LogOut className="h-5 w-5" />
               Sign Out
             </button>
           </div>

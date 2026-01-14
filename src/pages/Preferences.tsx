@@ -91,11 +91,7 @@ export function Preferences() {
         <EmptyState
           icon={<Heart className="h-8 w-8" />}
           title="No care recipient selected"
-          description="Add a care recipient first to track their preferences."
-          action={{
-            label: 'Add Care Recipient',
-            onClick: () => (window.location.href = '/profile'),
-          }}
+          description="Please add a care recipient in the Dashboard to track their preferences."
         />
       </Card>
     );

@@ -1,31 +1,33 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-display: "SF Pro Display", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-sans: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-compact: "SF Compact", "SF Compact Text", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
 
-  /* Warm Editorial Color Palette - Awwwards-level */
-  --color-primary-50: #FEF8F5;
-  --color-primary-100: #FDEEE7;
-  --color-primary-200: #FBDDD0;
-  --color-primary-300: #F5B89E;
-  --color-primary-400: #E8936D;
-  --color-primary-500: #D4725A;
-  --color-primary-600: #C85A44;
-  --color-primary-700: #A8472F;
-  --color-primary-800: #7D3321;
-  --color-primary-900: #5C2417;
+  /* Apple-inspired Clean Palette */
+  --color-primary-50: #fbfbfd;
+  --color-primary-100: #f5f5f7;
+  --color-primary-200: #e8e8ed;
+  --color-primary-300: #d2d2d7;
+  --color-primary-400: #86868b;
+  --color-primary-500: #6e6e73;
+  --color-primary-600: #424245;
+  --color-primary-700: #1d1d1f;
+  --color-primary-800: #1d1d1f;
+  --color-primary-900: #000000;
 
-  --color-sage-50: #F5F7F4;
-  --color-sage-100: #E8ECE4;
-  --color-sage-200: #D4DCC9;
-  --color-sage-300: #BAC5AA;
-  --color-sage-400: #A8B89C;
-  --color-sage-500: #8B9A7C;
-  --color-sage-600: #6F7D63;
-  --color-sage-700: #58604E;
-  --color-sage-800: #42483A;
-  --color-sage-900: #2D312A;
+  --color-sage-50: #f5f5f7;
+  --color-sage-100: #e8e8ed;
+  --color-sage-200: #d2d2d7;
+  --color-sage-300: #86868b;
+  --color-sage-400: #6e6e73;
+  --color-sage-500: #424245;
+  --color-sage-600: #1d1d1f;
+  --color-sage-700: #000000;
+  --color-sage-800: #000000;
+  --color-sage-900: #000000;
 
   --color-gold-50: #FEFBF3;
   --color-gold-100: #FDF5E1;
@@ -38,45 +40,51 @@
   --color-gold-800: #8C6626;
   --color-gold-900: #654718;
 
-  --color-cream: #FEFCF8;
-  --color-warm-gray: #5C5550;
-  --color-paper: #F8F6F2;
-  --color-sepia: #8B7355;
+  --color-cream: #FFFFFF;
+  --color-warm-gray: #86868b;
+  --color-paper: #FFFFFF;
+  --color-sepia: #1d1d1f;
 }
 
 body {
   @apply antialiased;
-  background: linear-gradient(135deg, #FEFCF8 0%, #F8F6F2 50%, #FEF8F5 100%);
-  background-attachment: fixed;
+  background-color: #f5f5f7;
   font-family: var(--font-sans);
-  color: #2D312A;
+  color: #1d1d1f;
   position: relative;
+  letter-spacing: -0.01em;
 }
 
-/* Subtle paper grain texture overlay */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.03;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+/* Ensure font inheritance for form elements */
+input, textarea, select, button {
+  font-family: inherit;
+  letter-spacing: inherit;
 }
 
 #root {
   @apply min-h-screen;
 }
 
-/* Editorial Typography */
+/* Apple Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.1;
+  color: #1d1d1f;
+}
+
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+.text-small, small, .text-xs, .text-xxs {
+  font-family: var(--font-compact), var(--font-sans);
 }
 
 /* Smooth transitions for all interactive elements */
@@ -176,6 +184,10 @@ select {
 /* Apply staggered fade-in to main content */
 main {
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-enter {
+  animation: slideInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Editorial Polaroid Card Hover Effect */

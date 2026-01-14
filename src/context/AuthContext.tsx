@@ -66,6 +66,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading: false,
       }));
     } catch {
+      console.log('Caregiver profile not found, attempting auto-creation...');
+      // Try to auto-create profile if missing
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: newCaregiver } = await supabase
+            .from('caregivers')
+            .insert({
+              user_id: user.id,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'Caregiver',
+              email: user.email
+            })
+            .select()
+            .single();
+
+          if (newCaregiver) {
+            setState((prev) => ({
+              ...prev,
+              caregiver: newCaregiver as Caregiver,
+              loading: false,
+            }));
+            return;
+          }
+        }
+      } catch (createError) {
+        console.error('Failed to auto-create caregiver profile:', createError);
+      }
+
       // Caregiver profile might not exist yet
       setState((prev) => ({ ...prev, loading: false }));
     }

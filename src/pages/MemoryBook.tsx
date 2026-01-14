@@ -87,11 +87,7 @@ export function MemoryBook() {
         <EmptyState
           icon={<BookOpen className="h-8 w-8" />}
           title="No care recipient selected"
-          description="Add a care recipient first to start logging interactions."
-          action={{
-            label: 'Add Care Recipient',
-            onClick: () => (window.location.href = '/profile'),
-          }}
+          description="Please add a care recipient in the Dashboard to start logging interactions."
         />
       </Card>
     );

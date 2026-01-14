@@ -10,27 +10,27 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', hover = false, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-white/80 backdrop-blur-sm border border-[#D4725A]/10 shadow-[0_4px_16px_-4px_rgba(93,50,30,0.08)]',
-      elevated: 'bg-white/90 backdrop-blur-md shadow-[0_8px_32px_-8px_rgba(93,50,30,0.12),0_4px_16px_-4px_rgba(93,50,30,0.06)] border border-[#F8F6F2]',
-      outline: 'bg-transparent backdrop-blur-sm border-2 border-[#D4725A]/20 hover:border-[#D4725A]/40',
-      gradient: 'bg-gradient-to-br from-[#FDEEE7] via-[#FEF8F5] to-[#FDF5E1] border border-[#D4725A]/10 shadow-[0_6px_24px_-6px_rgba(212,114,90,0.15)]',
+      default: 'bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-shadow duration-300',
+      elevated: 'bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.12)] transition-shadow duration-300',
+      outline: 'bg-transparent border border-[#d2d2d7] hover:border-[#86868b]',
+      gradient: 'bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]',
     };
 
     const paddings = {
       none: '',
-      sm: 'p-4',
-      md: 'p-6',
-      lg: 'p-8',
+      sm: 'p-5',
+      md: 'p-8',
+      lg: 'p-10',
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-3xl transition-all duration-500 ease-out',
+          'rounded-[28px] transition-all duration-300 ease-out',
           variants[variant],
           paddings[padding],
-          hover && 'hover:shadow-[0_20px_60px_-12px_rgba(93,50,30,0.2)] hover:-translate-y-2 hover:scale-[1.01] cursor-pointer',
+          hover && 'cursor-pointer hover:scale-[1.01]',
           className
         )}
         {...props}

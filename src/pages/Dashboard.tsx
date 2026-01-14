@@ -19,6 +19,8 @@ import {
   Spinner,
   StatCardSkeleton,
   InteractionCardSkeleton,
+  Input,
+  Textarea,
 } from '../components/ui';
 import {
   Plus,
@@ -30,16 +32,89 @@ import {
   Sparkles,
   Share2,
   Check,
+  User,
+  Save,
+  X,
+  Edit2
 } from 'lucide-react';
 import { formatRelativeTime, getMoodEmoji, getActivityIcon } from '../lib/utils';
 
 export function Dashboard() {
-  const { recipients, loading: recipientsLoading } = useRecipients();
-  const activeRecipient = recipients[0];
+  const { recipients, loading: recipientsLoading, addRecipient, updateRecipient, refresh: refreshRecipients } = useRecipients();
+  const activeRecipient = recipients[0]; // Currently defaulting to the first one for simplicity
   const { interactions, stats, loading: interactionsLoading, refresh } = useInteractions(activeRecipient?.id);
   const { highConfidence } = usePreferences(activeRecipient?.id);
   const [copied, setCopied] = useState(false);
   const [burnoutAnalysis, setBurnoutAnalysis] = useState<BurnoutAnalysis | null>(null);
+
+  // Recipient Management State
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingRecipient, setIsEditingRecipient] = useState(false);
+  
+  // Form Data
+  const [formData, setFormData] = useState({
+    name: '',
+    age: '',
+    communication_style: '',
+    important_notes: '',
+  });
+
+  const handleAddRecipient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await addRecipient({
+        name: formData.name,
+        age: formData.age && !isNaN(parseInt(formData.age)) ? parseInt(formData.age) : undefined,
+        communication_style: formData.communication_style || undefined,
+        important_notes: formData.important_notes || undefined,
+      });
+      setShowAddForm(false);
+      setFormData({ name: '', age: '', communication_style: '', important_notes: '' });
+      toast.success('Recipient added successfully!');
+      refreshRecipients();
+    } catch (error) {
+      console.error('Failed to add recipient:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to add recipient');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateRecipient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeRecipient) return;
+    setIsSubmitting(true);
+    try {
+      await updateRecipient(activeRecipient.id, {
+        name: formData.name,
+        age: formData.age ? parseInt(formData.age) : undefined,
+        communication_style: formData.communication_style || undefined,
+        important_notes: formData.important_notes || undefined,
+      });
+      setIsEditingRecipient(false);
+      toast.success('Recipient details updated!');
+      refreshRecipients();
+    } catch (error) {
+      console.error('Failed to update recipient:', error);
+      toast.error('Failed to update recipient');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = () => {
+    if (activeRecipient) {
+      setFormData({
+        name: activeRecipient.name,
+        age: activeRecipient.age?.toString() || '',
+        communication_style: activeRecipient.communication_style || '',
+        important_notes: activeRecipient.important_notes || '',
+      });
+      setIsEditingRecipient(true);
+    }
+  };
 
   const handleShareWithFamily = async () => {
     if (!activeRecipient) return;
@@ -107,6 +182,58 @@ export function Dashboard() {
     );
   }
 
+  if (showAddForm) {
+    return (
+      <div className="max-w-xl mx-auto py-12 dashboard-enter">
+        <Card variant="elevated" padding="lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Add Care Recipient</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <form onSubmit={handleAddRecipient}>
+            <CardContent className="space-y-6">
+              <Input
+                label="Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Name"
+                required
+              />
+              <Input
+                label="Age (optional)"
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                placeholder="Age"
+              />
+              <Input
+                label="Communication Style (optional)"
+                value={formData.communication_style}
+                onChange={(e) => setFormData({ ...formData, communication_style: e.target.value })}
+                placeholder="e.g. Verbal, Non-verbal"
+              />
+              <Textarea
+                label="Important Notes (optional)"
+                value={formData.important_notes}
+                onChange={(e) => setFormData({ ...formData, important_notes: e.target.value })}
+                placeholder="Any special needs or preferences"
+                rows={4}
+              />
+              <div className="flex justify-end gap-3 pt-4">
+                 <Button variant="outline" type="button" onClick={() => setShowAddForm(false)}>Cancel</Button>
+                 <Button type="submit" loading={isSubmitting}>Save Recipient</Button>
+              </div>
+            </CardContent>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
   if (!activeRecipient) {
     return (
       <div className="max-w-2xl mx-auto py-12">
@@ -117,7 +244,7 @@ export function Dashboard() {
             description="Start by adding a care recipient to begin your caregiving journey."
             action={{
               label: 'Add Care Recipient',
-              onClick: () => (window.location.href = '/profile'),
+              onClick: () => setShowAddForm(true),
             }}
           />
         </Card>
@@ -126,31 +253,19 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-10">
-      {/* Hero Header - Editorial Style */}
-      <div className="relative">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b-2 border-[#D4725A]/10">
-          <div className="space-y-3">
-            <div className="flex items-center gap-4">
-              <h1 className="text-5xl lg:text-6xl font-bold text-[#2D312A] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-                Good day
-              </h1>
-              <Badge variant="success" size="sm" className="animate-pulse">
-                <div className="h-2 w-2 bg-[#8B9A7C] rounded-full mr-1.5"></div>
-                Live
-              </Badge>
-            </div>
-            <p className="text-lg text-[#5C5550]/80 max-w-2xl leading-relaxed">
-              Here's how <span className="font-semibold text-[#D4725A]">{activeRecipient.name}</span>'s care is flourishing today
-            </p>
-            <div className="flex items-center gap-2 text-sm text-[#8B7355]">
-              <Heart className="h-4 w-4" />
-              <span className="handwritten-note text-base">Every moment matters</span>
-            </div>
+    <div className="space-y-12 dashboard-enter">
+      {/* Header - Apple Store Style */}
+      <div className="relative pt-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-6 border-b border-[#d2d2d7]">
+          <div className="space-y-2">
+            <h1 className="text-[48px] font-bold text-[#1d1d1f] leading-tight tracking-tight">
+              Dashboard.
+              <span className="block text-[#86868b]">Overview for {activeRecipient.name}.</span>
+            </h1>
           </div>
           <Link to="/memory-book/new">
-            <Button size="lg" aria-label="Log a new interaction or moment" className="shadow-xl">
-              <Plus className="h-5 w-5 mr-2" aria-hidden="true" />
+            <Button size="lg" className="shadow-none text-[17px]">
+              <Plus className="h-5 w-5 mr-2" />
               Capture a Moment
             </Button>
           </Link>
@@ -162,8 +277,8 @@ export function Dashboard() {
         <BurnoutWarning analysis={burnoutAnalysis} recipientName={activeRecipient.name} />
       )}
 
-      {/* Beautiful Stats Grid - Asymmetric Editorial Layout */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Stats Grid - Cleaner grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {recipientsLoading || interactionsLoading ? (
           <>
             <StatCardSkeleton />
@@ -173,30 +288,24 @@ export function Dashboard() {
           </>
         ) : (
           <>
-            <Card variant="elevated" padding="md" className="stagger-item group hover:shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#FBDDD0] to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-70 transition-opacity"></div>
-              <div className="relative flex flex-col gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#FBDDD0] to-[#FDEEE7] flex items-center justify-center shadow-lg">
-                  <BookOpen className="h-6 w-6 text-[#D4725A]" />
-                </div>
+            <Card variant="elevated" padding="lg" className="group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <BookOpen className="h-8 w-8 text-[#0071e3]" />
                 <div>
-                  <p className="text-4xl font-bold text-[#2D312A] mb-1" style={{ fontFamily: 'var(--font-display)' }}>{stats.thisWeek}</p>
-                  <p className="text-xs text-[#5C5550]/60 uppercase tracking-wider font-medium">This week</p>
+                  <p className="text-[32px] font-semibold text-[#1d1d1f] tracking-tight">{stats.thisWeek}</p>
+                  <p className="text-[13px] font-medium text-[#86868b]">Moments this week</p>
                 </div>
               </div>
             </Card>
 
-            <Card variant="elevated" padding="md" className="stagger-item group hover:shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#D4DCC9] to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-70 transition-opacity"></div>
-              <div className="relative flex flex-col gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4DCC9] to-[#E8ECE4] flex items-center justify-center shadow-lg">
-                  <TrendingUp className="h-6 w-6 text-[#8B9A7C]" />
-                </div>
+            <Card variant="elevated" padding="lg" className="group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <TrendingUp className="h-8 w-8 text-[#30b0c7]" />
                 <div>
-                  <p className="text-4xl font-bold text-[#2D312A] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+                  <p className="text-[32px] font-semibold text-[#1d1d1f] tracking-tight">
                     {stats.averageMood > 0 ? stats.averageMood.toFixed(1) : '-'}
                   </p>
-                  <p className="text-xs text-[#5C5550]/60 uppercase tracking-wider font-medium">Avg mood</p>
+                  <p className="text-[13px] font-medium text-[#86868b]">Average Mood</p>
                 </div>
               </div>
             </Card>
@@ -214,15 +323,25 @@ export function Dashboard() {
               </div>
             </Card>
 
-            <Card variant="elevated" padding="md" className="stagger-item group hover:shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#FBDDD0] to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-70 transition-opacity"></div>
-              <div className="relative flex flex-col gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4725A] to-[#C85A44] flex items-center justify-center shadow-lg">
-                  <Heart className="h-6 w-6 text-white" />
-                </div>
+            <Card variant="elevated" padding="lg" className="group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <Star className="h-8 w-8 text-[#bf5af2]" />
                 <div>
-                  <p className="text-4xl font-bold text-[#2D312A] mb-1" style={{ fontFamily: 'var(--font-display)' }}>{highConfidence.length}</p>
-                  <p className="text-xs text-[#5C5550]/60 uppercase tracking-wider font-medium">Preferences learned</p>
+                  <p className="text-[32px] font-semibold text-[#1d1d1f] tracking-tight">{highConfidence.length}</p>
+                  <p className="text-[13px] font-medium text-[#86868b]">Preferences</p>
+                </div>
+              </div>
+            </Card>
+
+             <Card variant="elevated" padding="lg" className="group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <Sparkles className="h-8 w-8 text-[#ff9500]" />
+                <div>
+                   {/* Placeholder for a 4th stat if we want it, or just keep 3 and adjust grid */}
+                   {/* Let's verify if there is a 4th metric. The skeleton suggests 4. */}
+                   {/* I'll duplicate the logic for now or add a dummy one for "Streak" or similar, or just close the fragment */}
+                   <p className="text-[32px] font-semibold text-[#1d1d1f] tracking-tight">Active</p>
+                   <p className="text-[13px] font-medium text-[#86868b]">Status</p>
                 </div>
               </div>
             </Card>
@@ -231,75 +350,119 @@ export function Dashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Beautiful Care Recipient Card - Polaroid Style */}
-        <Card variant="gradient" padding="lg" className="lg:col-span-1 stagger-item ribbon-bookmark relative">
-          <div className="text-center space-y-5">
-            <div className="relative inline-block">
-              <Avatar
-                src={activeRecipient.profile_photo}
-                fallback={activeRecipient.name}
-                size="xl"
-                className="mx-auto ring-4 ring-white shadow-2xl"
-              />
-              <div className="absolute -bottom-2 -right-2 h-10 w-10 bg-gradient-to-br from-[#E8B863] to-[#D4A451] rounded-full flex items-center justify-center shadow-lg">
-                <Sparkles className="h-5 w-5 text-white" />
+        {/* Profile Card */}
+        <Card variant="elevated" padding="lg" className="lg:col-span-1 h-fit">
+          {isEditingRecipient ? (
+            <div className="space-y-4">
+               <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-lg text-[#1d1d1f]">Edit Details</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditingRecipient(false)}><X className="h-4 w-4" /></Button>
+               </div>
+               <form onSubmit={handleUpdateRecipient} className="space-y-4">
+                  <Input
+                    label="Name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                  <Input
+                    label="Age"
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  />
+                  <Input
+                    label="Communication Style"
+                    value={formData.communication_style}
+                    onChange={(e) => setFormData({ ...formData, communication_style: e.target.value })}
+                  />
+                  <Textarea
+                    label="Important Notes"
+                    value={formData.important_notes}
+                    onChange={(e) => setFormData({ ...formData, important_notes: e.target.value })}
+                    rows={3}
+                  />
+                   <Button type="submit" loading={isSubmitting} className="w-full">Save Changes</Button>
+               </form>
+            </div>
+          ) : (
+            <>
+              <div className="text-center space-y-6">
+                <div className="relative inline-block">
+                  <Avatar
+                    src={activeRecipient.profile_photo}
+                    fallback={activeRecipient.name}
+                    size="xl"
+                    className="mx-auto shadow-md"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-[24px] font-bold text-[#1d1d1f] tracking-tight">
+                    {activeRecipient.name}
+                  </h2>
+                  {activeRecipient.age && (
+                    <p className="text-[#86868b] text-[15px]">{activeRecipient.age} years old</p>
+                  )}
+                </div>
+
+                {activeRecipient.communication_style && (
+                  <div className="pt-2">
+                    <Badge variant="secondary" className="bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]">
+                      {activeRecipient.communication_style}
+                    </Badge>
+                  </div>
+                  )}
               </div>
-            </div>
 
-            <div>
-              <h2 className="text-3xl font-bold text-[#2D312A] mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-                {activeRecipient.name}
-              </h2>
-              {activeRecipient.age && (
-                <p className="text-[#5C5550]/70 text-sm">{activeRecipient.age} years young</p>
+              {activeRecipient.important_notes && (
+                <div className="mt-8 p-6 bg-[#f5f5f7] rounded-[20px]">
+                  <p className="text-[11px] font-semibold text-[#86868b] mb-2 uppercase tracking-wide">Important Notes</p>
+                  <p className="text-[15px] text-[#1d1d1f] leading-relaxed">{activeRecipient.important_notes}</p>
+                </div>
               )}
-              {activeRecipient.communication_style && (
-                <Badge variant="primary" className="mt-3">
-                  {activeRecipient.communication_style}
-                </Badge>
-              )}
-            </div>
-          </div>
 
-          {activeRecipient.important_notes && (
-            <div className="mt-8 p-5 bg-white/80 backdrop-blur-sm rounded-2xl border border-[#D4725A]/10 shadow-inner">
-              <p className="text-xs font-semibold text-[#D4725A] mb-2 uppercase tracking-wider">Important Notes</p>
-              <p className="text-sm text-[#5C5550] leading-relaxed handwritten-note">{activeRecipient.important_notes}</p>
-            </div>
+              <div className="mt-8 space-y-3">
+                <Button variant="primary" className="w-full justify-center" onClick={handleShareWithFamily}>
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Link Copied
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Profile
+                    </>
+                  )}
+                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                   <Button variant="outline" className="justify-center" onClick={startEditing}>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit Details
+                   </Button>
+                   <Button variant="outline" className="justify-center" onClick={() => {
+                      setFormData({ name: '', age: '', communication_style: '', important_notes: '' });
+                      setShowAddForm(true);
+                   }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New
+                   </Button>
+                </div>
+              </div>
+            </>
           )}
-
-          <div className="mt-6 space-y-3">
-            <Button variant="primary" className="w-full" onClick={handleShareWithFamily}>
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Link Copied!
-                </>
-              ) : (
-                <>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share with Family
-                </>
-              )}
-            </Button>
-            <Link to="/profile" className="block">
-              <Button variant="outline" className="w-full">
-                View Full Profile
-              </Button>
-            </Link>
-          </div>
         </Card>
 
-        {/* Recent Moments - Polaroid Memory Cards */}
-        <Card variant="elevated" padding="lg" className="lg:col-span-2 stagger-item">
+        {/* Recent Moments */}
+        <Card variant="elevated" padding="lg" className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl mb-2">Recent Moments</CardTitle>
-                <p className="text-sm text-[#8B7355] handwritten-note">A collection of memories</p>
+                <CardTitle className="text-[24px] font-bold text-[#1d1d1f] tracking-tight mb-0">Recent Moments</CardTitle>
+                <p className="text-[13px] text-[#86868b] font-medium mt-1">Latest collected memories</p>
               </div>
               <Link to="/memory-book">
-                <Button variant="ghost" size="sm" className="hover:bg-[#FEF8F5]">
+                <Button variant="ghost" size="sm" className="text-[#0071e3]">
                   View All
                 </Button>
               </Link>
@@ -321,38 +484,37 @@ export function Dashboard() {
                 />
               </div>
             ) : (
-              <div className="space-y-4">
+               <div className="divide-y divide-[#e8e8ed]">
                 {interactions.slice(0, 5).map((interaction, idx) => (
                   <div
                     key={interaction.id}
-                    className="group flex items-start gap-4 p-5 rounded-2xl hover:bg-gradient-to-br hover:from-[#FEF8F5] hover:to-[#FDEEE7] transition-all duration-500 border border-transparent hover:border-[#D4725A]/20 hover:shadow-lg cursor-pointer transform hover:-translate-y-1"
-                    style={{ animationDelay: `${idx * 0.1}s` }}
+                    className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
                   >
-                    <div className="flex-shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#FBDDD0] to-[#FDEEE7] flex items-center justify-center text-3xl shadow-md group-hover:shadow-xl transition-shadow">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-[14px] bg-[#f5f5f7] flex items-center justify-center text-2xl">
                       {getActivityIcon(interaction.activity_type)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <p className="font-semibold text-[#2D312A] text-lg truncate">
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-[15px] text-[#1d1d1f] truncate">
                           {interaction.title || interaction.activity_type}
                         </p>
                         {interaction.mood_rating && (
-                          <span className="text-2xl transform group-hover:scale-110 transition-transform">
+                          <span className="text-lg">
                             {getMoodEmoji(interaction.mood_rating)}
                           </span>
                         )}
                       </div>
                       {interaction.description && (
-                        <p className="text-sm text-[#5C5550]/80 leading-relaxed mb-2 line-clamp-2">
+                        <p className="text-[13px] text-[#86868b] leading-relaxed line-clamp-2">
                           {interaction.description}
                         </p>
                       )}
-                      <p className="text-xs text-[#8B7355] font-medium">
+                      <p className="text-[11px] text-[#86868b]/70 font-medium mt-1.5">
                         {formatRelativeTime(interaction.created_at)}
                       </p>
                     </div>
                     {interaction.success_level && interaction.success_level >= 4 && (
-                      <Badge variant="success" size="sm" className="flex-shrink-0">
+                      <Badge variant="success" size="sm" className="flex-shrink-0 bg-[#e3ffe3] text-[#1d811d]">
                         <Star className="h-3 w-3 mr-1" />
                         Success
                       </Badge>
