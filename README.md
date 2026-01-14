@@ -2,8 +2,6 @@
 
 **AI-Powered Caregiver-Care Recipient Relationship Platform**
 
-Built for Hack for Good (H4G) by NUS Developer Group - TSAO Problem Statement #2
-
 ---
 
 ## Problem Statement
@@ -176,41 +174,4 @@ npm run lint     # Run ESLint
 
 ---
 
-## Impact Metrics
 
-- **Time saved**: Caregivers spend less time searching notes
-- **Successful interactions**: Increase in high-rated (4-5 star) interactions
-- **Preference learning**: Number of preferences accurately identified
-- **Caregiver confidence**: Self-reported improvement in knowing what care recipient wants
-
----
-
-## Future Enhancements
-
-- [ ] Family Portal - Read-only view for family members
-- [ ] Pattern Recognition - Visual charts of successful interaction patterns
-- [ ] Voice Notes - Quick audio logging
-- [ ] Multi-language Support - Support for Mandarin, Malay, Tamil
-- [ ] Offline Mode - PWA with offline capability
-- [ ] Calendar Integration - Schedule suggested activities
-
----
-
-## Team
-
-Built with care for H4G Hackathon 2024
-
----
-
-## Acknowledgments
-
-- TSAO Foundation for the problem statement
-- NUS Developer Student Club for organizing H4G
-- Supabase for backend infrastructure
-- OpenAI for AI capabilities
-
----
-
-## License
-
-MIT License - see LICENSE for details
