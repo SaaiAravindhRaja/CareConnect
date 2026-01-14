@@ -23,6 +23,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Zap,
+  TrendingUp,
 } from 'lucide-react';
 import type { ActivitySuggestion } from '../types';
 

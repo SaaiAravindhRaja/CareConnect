@@ -161,8 +161,7 @@ export function LogInteraction() {
       const interaction = await addInteraction({
         ...formData,
         ai_insights: aiInsight || undefined,
-        photos: uploadedPhotos,
-      });
+      }, uploadedPhotos);
 
       // Celebrate beautiful moments with confetti!
       const isBeautifulMoment =

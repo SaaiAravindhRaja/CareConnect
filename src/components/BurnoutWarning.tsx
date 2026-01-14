@@ -5,10 +5,10 @@ import type { BurnoutAnalysis } from '../lib/openai';
 
 interface BurnoutWarningProps {
   analysis: BurnoutAnalysis;
-  recipientName: string;
+  recipientName?: string;
 }
 
-export function BurnoutWarning({ analysis, recipientName }: BurnoutWarningProps) {
+export function BurnoutWarning({ analysis }: BurnoutWarningProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 

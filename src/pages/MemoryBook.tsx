@@ -16,7 +16,6 @@ import {
   BookOpen,
   Search,
   Calendar,
-  Image,
   Star,
 } from 'lucide-react';
 import {

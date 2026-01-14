@@ -69,7 +69,7 @@ export function Dashboard() {
           table: 'interactions',
           filter: `recipient_id=eq.${activeRecipient.id}`,
         },
-        (payload) => {
+        () => {
           // Show toast notification for new moment
           toast.success('📝 New moment logged!', {
             duration: 4000,
