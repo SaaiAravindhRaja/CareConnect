@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
-import { generateActivitySuggestions } from '../lib/openai';
+import { generateActivitySuggestions, predictBeautifulMoments, type PredictionResult } from '../lib/openai';
 import { createSuggestion, updateSuggestionStatus, getSuggestions } from '../lib/supabase';
 import { getTimeOfDay } from '../lib/utils';
 import {
@@ -45,12 +45,23 @@ export function Suggestions() {
   const [savedSuggestions, setSavedSuggestions] = useState<ActivitySuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [predictions, setPredictions] = useState<PredictionResult | null>(null);
 
   useEffect(() => {
     if (activeRecipient) {
       loadSavedSuggestions();
     }
   }, [activeRecipient]);
+
+  useEffect(() => {
+    if (interactions.length >= 10) {
+      predictBeautifulMoments(interactions)
+        .then(setPredictions)
+        .catch((error) => {
+          console.error('Failed to load predictions:', error);
+        });
+    }
+  }, [interactions]);
 
   const loadSavedSuggestions = async () => {
     if (!activeRecipient) return;
@@ -243,6 +254,55 @@ export function Suggestions() {
 
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-xl">{error}</div>
+      )}
+
+      {/* ML Predictions - Best Activities */}
+      {predictions && predictions.best_activities.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Predicted Success Patterns
+            </h2>
+            <Badge variant="success" size="sm">
+              AI Analysis
+            </Badge>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {predictions.best_activities.slice(0, 4).map((pred, index) => (
+              <Card key={index} variant="gradient" padding="md">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 capitalize">
+                      {pred.activity_type.replace('_', ' ')}
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {pred.time_of_day} • {pred.day_of_week}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={
+                      pred.beautiful_moment_rate >= 0.7
+                        ? 'success'
+                        : pred.beautiful_moment_rate >= 0.5
+                        ? 'primary'
+                        : 'default'
+                    }
+                    size="sm"
+                  >
+                    {Math.round(pred.beautiful_moment_rate * 100)}% success
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-700 mb-2">{pred.recommendation}</p>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span>Based on {pred.sample_size} interactions</span>
+                  <span>•</span>
+                  <span className="capitalize">{pred.confidence_level} confidence</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* New Suggestions */}

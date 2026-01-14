@@ -132,6 +132,59 @@ export const analyzeCaregiverBurnout = async (
   }
 };
 
+export interface ActivityPrediction {
+  activity_type: string;
+  time_of_day: string;
+  day_of_week: string;
+  success_probability: number;
+  beautiful_moment_rate: number;
+  sample_size: number;
+  confidence_level: 'high' | 'medium' | 'low';
+  recommendation: string;
+}
+
+export interface PredictionResult {
+  predictions: ActivityPrediction[];
+  best_times: {
+    morning: ActivityPrediction[];
+    afternoon: ActivityPrediction[];
+    evening: ActivityPrediction[];
+  };
+  best_activities: ActivityPrediction[];
+  message?: string;
+}
+
+export const predictBeautifulMoments = async (
+  interactions: Interaction[]
+): Promise<PredictionResult> => {
+  try {
+    const response = await fetch('/api/predict-beautiful-moments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        interactions,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error predicting beautiful moments:', error);
+    // Fallback
+    return {
+      predictions: [],
+      best_times: { morning: [], afternoon: [], evening: [] },
+      best_activities: [],
+      message: 'Unable to generate predictions at this time',
+    };
+  }
+};
+
 // Mock suggestions for when API is not available
 function getMockSuggestions(
   recipientName: string,
