@@ -12,24 +12,24 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = 'default', size = 'md', removable, onRemove, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-gray-100 text-gray-700',
-      primary: 'bg-purple-100 text-purple-700',
-      success: 'bg-green-100 text-green-700',
-      warning: 'bg-yellow-100 text-yellow-700',
-      danger: 'bg-red-100 text-red-700',
-      outline: 'border border-gray-300 text-gray-700',
+      default: 'bg-[#F8F6F2] text-[#5C5550] border border-[#D4725A]/10',
+      primary: 'bg-gradient-to-br from-[#FBDDD0] to-[#FDEEE7] text-[#A8472F] border border-[#D4725A]/20',
+      success: 'bg-gradient-to-br from-[#D4DCC9] to-[#E8ECE4] text-[#58604E] border border-[#8B9A7C]/20',
+      warning: 'bg-gradient-to-br from-[#FAECC4] to-[#FDF5E1] text-[#8C6626] border border-[#E8B863]/20',
+      danger: 'bg-gradient-to-br from-red-100 to-red-50 text-red-700 border border-red-200',
+      outline: 'border border-[#D4725A]/30 text-[#5C5550] bg-white/50 backdrop-blur-sm',
     };
 
     const sizes = {
-      sm: 'text-xs px-2 py-0.5',
-      md: 'text-sm px-2.5 py-1',
+      sm: 'text-xs px-3 py-1',
+      md: 'text-sm px-4 py-1.5 font-medium',
     };
 
     return (
       <span
         ref={ref}
         className={cn(
-          'inline-flex items-center rounded-full font-medium',
+          'inline-flex items-center rounded-full font-medium transition-all duration-300',
           variants[variant],
           sizes[size],
           className

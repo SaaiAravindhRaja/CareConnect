@@ -10,27 +10,27 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', hover = false, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-white border border-gray-200',
-      elevated: 'bg-white shadow-lg shadow-gray-200/50',
-      outline: 'bg-transparent border-2 border-gray-200',
-      gradient: 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100',
+      default: 'bg-white/80 backdrop-blur-sm border border-[#D4725A]/10 shadow-[0_4px_16px_-4px_rgba(93,50,30,0.08)]',
+      elevated: 'bg-white/90 backdrop-blur-md shadow-[0_8px_32px_-8px_rgba(93,50,30,0.12),0_4px_16px_-4px_rgba(93,50,30,0.06)] border border-[#F8F6F2]',
+      outline: 'bg-transparent backdrop-blur-sm border-2 border-[#D4725A]/20 hover:border-[#D4725A]/40',
+      gradient: 'bg-gradient-to-br from-[#FDEEE7] via-[#FEF8F5] to-[#FDF5E1] border border-[#D4725A]/10 shadow-[0_6px_24px_-6px_rgba(212,114,90,0.15)]',
     };
 
     const paddings = {
       none: '',
-      sm: 'p-3',
-      md: 'p-5',
-      lg: 'p-6',
+      sm: 'p-4',
+      md: 'p-6',
+      lg: 'p-8',
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-2xl transition-all duration-200',
+          'rounded-3xl transition-all duration-500 ease-out',
           variants[variant],
           paddings[padding],
-          hover && 'hover:shadow-xl hover:-translate-y-0.5 cursor-pointer',
+          hover && 'hover:shadow-[0_20px_60px_-12px_rgba(93,50,30,0.2)] hover:-translate-y-2 hover:scale-[1.01] cursor-pointer',
           className
         )}
         {...props}
@@ -53,7 +53,7 @@ CardHeader.displayName = 'CardHeader';
 
 export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-lg font-semibold text-gray-900', className)} {...props} />
+    <h3 ref={ref} className={cn('text-xl font-semibold text-[#2D312A] tracking-tight', className)} {...props} />
   )
 );
 
@@ -61,7 +61,7 @@ CardTitle.displayName = 'CardTitle';
 
 export const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-gray-500 mt-1', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-[#5C5550]/70 mt-2 leading-relaxed', className)} {...props} />
   )
 );
 
@@ -75,7 +75,7 @@ CardContent.displayName = 'CardContent';
 
 export const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('mt-4 pt-4 border-t border-gray-100', className)} {...props} />
+    <div ref={ref} className={cn('mt-6 pt-6 border-t border-[#D4725A]/10', className)} {...props} />
   )
 );
 
