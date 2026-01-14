@@ -1,20 +1,54 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Button, Input, Card } from '../components/ui';
 import { Heart, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isValidating, setIsValidating] = useState(true);
   const [passwordStrength, setPasswordStrength] = useState<{
     score: number;
     feedback: string[];
   }>({ score: 0, feedback: [] });
+
+  // Validate reset token on mount
+  useEffect(() => {
+    const validateToken = async () => {
+      const code = searchParams.get('code');
+      const token = searchParams.get('token');
+
+      if (!code && !token) {
+        setError('Invalid or missing reset token. Please request a new password reset link.');
+        setIsValidating(false);
+        return;
+      }
+
+      // If we have a code, exchange it for a session
+      if (code) {
+        try {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            console.error('Token exchange error:', exchangeError);
+            setError('Invalid or expired reset link. Please request a new password reset.');
+          }
+        } catch (err) {
+          console.error('Token validation error:', err);
+          setError('Invalid or expired reset link. Please request a new password reset.');
+        }
+      }
+
+      setIsValidating(false);
+    };
+
+    validateToken();
+  }, [searchParams]);
 
   const validatePasswordStrength = (pwd: string) => {
     const feedback: string[] = [];
@@ -104,6 +138,17 @@ export function ResetPassword() {
     return 'Strong';
   };
 
+  if (isValidating) {
+    return (
+      <div className="min-h-screen gradient-warmth flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#D4725A] border-r-transparent"></div>
+          <p className="mt-4 text-[#5C5550]">Validating reset link...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen gradient-warmth flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -136,9 +181,28 @@ export function ResetPassword() {
                 </p>
               </div>
             </div>
+          ) : error && error.includes('Invalid or expired') ? (
+            <div className="text-center py-6 space-y-4">
+              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-red-100 to-orange-100 mx-auto">
+                <AlertCircle className="h-9 w-9 text-red-600" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold text-[#2D312A]" style={{ fontFamily: 'var(--font-display)' }}>
+                  Reset Link Invalid
+                </h3>
+                <p className="text-sm text-[#5C5550]/80 leading-relaxed px-4">
+                  {error}
+                </p>
+              </div>
+              <Link to="/forgot-password" className="block pt-4">
+                <Button variant="primary" className="w-full">
+                  Request New Reset Link
+                </Button>
+              </Link>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
+              {error && !error.includes('Invalid or expired') && (
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 text-red-700 text-sm leading-relaxed">
                   <p className="font-semibold mb-1">Error</p>
                   <p>{error}</p>
