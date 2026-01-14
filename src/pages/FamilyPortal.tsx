@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { Card, Spinner, Avatar, Badge, EmptyState } from '../components/ui';
-import { Heart, Calendar, Smile, TrendingUp, Star } from 'lucide-react';
+import { Heart, Calendar, Smile, TrendingUp, Star, Radio } from 'lucide-react';
 import { formatDate } from '../lib/utils';
 import type { CareRecipient, Interaction } from '../types';
 
@@ -11,12 +12,61 @@ export function FamilyPortal() {
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newInteractionIds, setNewInteractionIds] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState({
     total: 0,
     thisWeek: 0,
     avgMood: 0,
     topActivities: [] as string[],
   });
+
+  const loadInteractionsAndStats = useCallback(async () => {
+    if (!shareId) return;
+
+    try {
+      // Fetch interactions
+      const { data: interactionsData, error: interactionsError } = await supabase
+        .from('interactions')
+        .select('*')
+        .eq('recipient_id', shareId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (interactionsError) throw interactionsError;
+      setInteractions(interactionsData || []);
+
+      // Calculate stats
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const weekInteractions = (interactionsData || []).filter(
+        (i) => new Date(i.created_at) >= oneWeekAgo
+      );
+
+      const avgMood =
+        (interactionsData || []).reduce((sum, i) => sum + (i.mood_rating || 0), 0) /
+        ((interactionsData || []).length || 1);
+
+      const activityCounts: Record<string, number> = {};
+      (interactionsData || []).forEach((i) => {
+        activityCounts[i.activity_type] = (activityCounts[i.activity_type] || 0) + 1;
+      });
+
+      const topActivities = Object.entries(activityCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([type]) => type);
+
+      setStats({
+        total: (interactionsData || []).length,
+        thisWeek: weekInteractions.length,
+        avgMood,
+        topActivities,
+      });
+    } catch (error) {
+      console.error('Failed to load interactions:', error);
+    }
+  }, [shareId]);
 
   useEffect(() => {
     async function loadPortalData() {
@@ -33,45 +83,8 @@ export function FamilyPortal() {
         if (recipientError) throw recipientError;
         setRecipient(recipientData);
 
-        // Fetch interactions
-        const { data: interactionsData, error: interactionsError } = await supabase
-          .from('interactions')
-          .select('*')
-          .eq('recipient_id', shareId)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (interactionsError) throw interactionsError;
-        setInteractions(interactionsData || []);
-
-        // Calculate stats
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const weekInteractions = (interactionsData || []).filter(
-          (i) => new Date(i.created_at) >= oneWeekAgo
-        );
-
-        const avgMood =
-          (interactionsData || []).reduce((sum, i) => sum + (i.mood_rating || 0), 0) /
-          ((interactionsData || []).length || 1);
-
-        const activityCounts: Record<string, number> = {};
-        (interactionsData || []).forEach((i) => {
-          activityCounts[i.activity_type] = (activityCounts[i.activity_type] || 0) + 1;
-        });
-
-        const topActivities = Object.entries(activityCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 3)
-          .map(([type]) => type);
-
-        setStats({
-          total: (interactionsData || []).length,
-          thisWeek: weekInteractions.length,
-          avgMood,
-          topActivities,
-        });
+        // Load interactions
+        await loadInteractionsAndStats();
       } catch (error) {
         console.error('Failed to load portal data:', error);
       } finally {
@@ -80,7 +93,52 @@ export function FamilyPortal() {
     }
 
     loadPortalData();
-  }, [shareId]);
+  }, [shareId, loadInteractionsAndStats]);
+
+  // Real-time subscription for live updates
+  useEffect(() => {
+    if (!shareId) return;
+
+    const channel = supabase
+      .channel('family-portal-interactions')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'interactions',
+          filter: `recipient_id=eq.${shareId}`,
+        },
+        (payload) => {
+          // Show toast notification
+          toast.success('💝 New moment just logged!', {
+            duration: 5000,
+            icon: '✨',
+          });
+
+          // Mark as new for pulse animation
+          const newId = payload.new.id as string;
+          setNewInteractionIds((prev) => new Set(prev).add(newId));
+
+          // Remove pulse after 3 seconds
+          setTimeout(() => {
+            setNewInteractionIds((prev) => {
+              const updated = new Set(prev);
+              updated.delete(newId);
+              return updated;
+            });
+          }, 3000);
+
+          // Refresh interactions and stats
+          loadInteractionsAndStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [shareId, loadInteractionsAndStats]);
 
   if (loading) {
     return (
@@ -109,15 +167,23 @@ export function FamilyPortal() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4">
-            <Avatar src={recipient.profile_photo} fallback={recipient.name} size="lg" />
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {recipient.name}'s Care Journey
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Shared with love by their caregiver
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar src={recipient.profile_photo} fallback={recipient.name} size="lg" />
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    {recipient.name}'s Care Journey
+                  </h1>
+                  <Badge variant="success" size="sm" className="animate-pulse">
+                    <Radio className="h-3 w-3 mr-1" />
+                    Live
+                  </Badge>
+                </div>
+                <p className="text-gray-600 mt-1">
+                  Shared with love by their caregiver
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -184,7 +250,13 @@ export function FamilyPortal() {
           ) : (
             <div className="space-y-4">
               {interactions.map((interaction) => (
-                <Card key={interaction.id} variant="elevated" padding="lg" hover>
+                <Card
+                  key={interaction.id}
+                  variant="elevated"
+                  padding="lg"
+                  hover
+                  className={newInteractionIds.has(interaction.id) ? 'animate-pulse ring-2 ring-purple-400 ring-offset-2' : ''}
+                >
                   <div className="flex items-start gap-4">
                     {/* Date indicator */}
                     <div className="flex-shrink-0 text-center">
