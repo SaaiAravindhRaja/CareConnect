@@ -7,3 +7,10 @@ export { Badge } from './Badge';
 export { Avatar } from './Avatar';
 export { Spinner, LoadingScreen } from './Spinner';
 export { EmptyState } from './EmptyState';
+export {
+  Skeleton,
+  CardSkeleton,
+  StatCardSkeleton,
+  InteractionCardSkeleton,
+  SuggestionCardSkeleton,
+} from './Skeleton';

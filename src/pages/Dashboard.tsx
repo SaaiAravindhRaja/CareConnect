@@ -17,6 +17,8 @@ import {
   Badge,
   EmptyState,
   Spinner,
+  StatCardSkeleton,
+  InteractionCardSkeleton,
 } from '../components/ui';
 import {
   Plus,
@@ -152,17 +154,26 @@ export function Dashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card variant="elevated" padding="md">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <BookOpen className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.thisWeek}</p>
-              <p className="text-xs text-gray-500">This week</p>
-            </div>
-          </div>
-        </Card>
+        {recipientsLoading || interactionsLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <Card variant="elevated" padding="md">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.thisWeek}</p>
+                  <p className="text-xs text-gray-500">This week</p>
+                </div>
+              </div>
+            </Card>
 
         <Card variant="elevated" padding="md">
           <div className="flex items-center gap-3">
@@ -201,6 +212,8 @@ export function Dashboard() {
             </div>
           </div>
         </Card>
+          </>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -267,8 +280,10 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             {interactionsLoading ? (
-              <div className="flex justify-center py-8">
-                <Spinner />
+              <div className="space-y-3">
+                <InteractionCardSkeleton />
+                <InteractionCardSkeleton />
+                <InteractionCardSkeleton />
               </div>
             ) : interactions.length === 0 ? (
               <EmptyState

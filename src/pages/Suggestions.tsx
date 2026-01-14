@@ -12,6 +12,7 @@ import {
   Badge,
   Spinner,
   EmptyState,
+  SuggestionCardSkeleton,
 } from '../components/ui';
 import {
   Lightbulb,
@@ -193,8 +194,18 @@ export function Suggestions() {
 
   if (recipientsLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <Spinner size="lg" />
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-gray-200 animate-pulse rounded" />
+            <div className="h-4 w-48 bg-gray-200 animate-pulse rounded" />
+          </div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          <SuggestionCardSkeleton />
+          <SuggestionCardSkeleton />
+          <SuggestionCardSkeleton />
+        </div>
       </div>
     );
   }
