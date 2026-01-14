@@ -98,6 +98,25 @@ export const getCareRecipient = async (recipientId: string) => {
   return data;
 };
 
+export const updateCareRecipient = async (
+  recipientId: string,
+  updates: {
+    name?: string;
+    age?: number;
+    communication_style?: string;
+    important_notes?: string;
+  }
+) => {
+  const { data, error } = await supabase
+    .from('care_recipients')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', recipientId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
 export const createCareRecipient = async (
   recipientData: {
     name: string;

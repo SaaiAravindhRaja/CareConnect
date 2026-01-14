@@ -112,8 +112,18 @@ export function LogInteraction() {
     setIsSubmitting(true);
 
     try {
-      // Create the interaction
-      const interaction = await addInteraction(formData);
+      // Generate AI insight BEFORE creating interaction
+      const tempInteraction = {
+        ...formData,
+        recipient_id: activeRecipient.id,
+      };
+      const aiInsight = await generateInsightsFromInteraction(tempInteraction as any);
+
+      // Create the interaction WITH the AI insight
+      const interaction = await addInteraction({
+        ...formData,
+        ai_insights: aiInsight || undefined,
+      });
 
       // Celebrate beautiful moments with confetti!
       const isBeautifulMoment =
@@ -150,11 +160,8 @@ export function LogInteraction() {
         })();
       }
 
-      // Generate AI insights and extract preferences in background
+      // Extract preferences in background
       if (interaction) {
-        // Generate insights (TODO: use for AI feedback)
-        await generateInsightsFromInteraction(interaction);
-
         // Extract preferences from the interaction
         const newPreferences = await extractPreferencesFromInteraction(interaction, preferences);
 

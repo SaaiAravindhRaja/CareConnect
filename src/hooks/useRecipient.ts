@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCareRecipients, getCareRecipient, createCareRecipient } from '../lib/supabase';
+import { getCareRecipients, getCareRecipient, createCareRecipient, updateCareRecipient } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { CareRecipient } from '../types';
 
@@ -52,7 +52,28 @@ export function useRecipients() {
     }
   };
 
-  return { recipients, loading, error, refresh: loadRecipients, addRecipient };
+  const updateRecipient = async (
+    recipientId: string,
+    data: {
+      name?: string;
+      age?: number;
+      communication_style?: string;
+      important_notes?: string;
+    }
+  ) => {
+    try {
+      const updated = await updateCareRecipient(recipientId, data);
+      setRecipients((prev) =>
+        prev.map((r) => (r.id === recipientId ? (updated as CareRecipient) : r))
+      );
+      return updated;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update recipient');
+      throw err;
+    }
+  };
+
+  return { recipients, loading, error, refresh: loadRecipients, addRecipient, updateRecipient };
 }
 
 export function useRecipient(recipientId: string | undefined) {

@@ -124,6 +124,56 @@ export function Suggestions() {
     }
   };
 
+  const handleTryFreshSuggestion = async (suggestion: any) => {
+    if (!activeRecipient) return;
+    try {
+      // Save to database first
+      const saved = await createSuggestion({
+        recipient_id: activeRecipient.id,
+        suggestion_text: suggestion.activity,
+        reasoning: suggestion.reasoning,
+        context: {
+          confidence: suggestion.confidence,
+          estimated_duration: suggestion.estimated_duration,
+        },
+      });
+      // Then mark as accepted
+      if (saved?.id) {
+        await updateSuggestionStatus(saved.id, 'accepted');
+      }
+      // Refresh suggestions
+      await loadSavedSuggestions();
+      // Remove from fresh suggestions
+      setSuggestions((prev) => prev.filter((s) => s.activity !== suggestion.activity));
+    } catch (err) {
+      console.error('Failed to save fresh suggestion:', err);
+    }
+  };
+
+  const handleDismissFreshSuggestion = async (suggestion: any) => {
+    if (!activeRecipient) return;
+    try {
+      // Save to database as rejected
+      const saved = await createSuggestion({
+        recipient_id: activeRecipient.id,
+        suggestion_text: suggestion.activity,
+        reasoning: suggestion.reasoning,
+        context: {
+          confidence: suggestion.confidence,
+          estimated_duration: suggestion.estimated_duration,
+        },
+      });
+      if (saved?.id) {
+        await updateSuggestionStatus(saved.id, 'rejected');
+      }
+      // Remove from UI
+      setSuggestions((prev) => prev.filter((s) => s.activity !== suggestion.activity));
+      await loadSavedSuggestions();
+    } catch (err) {
+      console.error('Failed to dismiss suggestion:', err);
+    }
+  };
+
   if (recipientsLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -212,11 +262,11 @@ export function Suggestions() {
                 <p className="text-sm text-gray-600 mb-4">{suggestion.reasoning}</p>
 
                 <div className="flex gap-2">
-                  <Button size="sm" className="flex-1">
+                  <Button size="sm" className="flex-1" onClick={() => handleTryFreshSuggestion(suggestion)}>
                     <ThumbsUp className="h-4 w-4 mr-1" />
                     Try This
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleDismissFreshSuggestion(suggestion)}>
                     <ThumbsDown className="h-4 w-4" />
                   </Button>
                 </div>
