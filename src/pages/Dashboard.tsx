@@ -140,8 +140,8 @@ export function Dashboard() {
           <p className="text-gray-600">Here's how {activeRecipient.name}'s care is going</p>
         </div>
         <Link to="/memory-book/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button aria-label="Log a new interaction or moment">
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
             Log Interaction
           </Button>
         </Link>

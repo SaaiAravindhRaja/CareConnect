@@ -58,28 +58,33 @@ export function Rating({
         type="button"
         onClick={() => !readonly && onChange?.(rating)}
         disabled={readonly}
+        aria-label={`Rate ${rating} out of ${max} stars`}
+        aria-pressed={isActive}
         className={cn(
           'transition-all duration-200',
-          !readonly && 'hover:scale-110 focus:outline-none',
+          !readonly && 'hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded',
           isActive ? 'text-yellow-400' : 'text-gray-300'
         )}
       >
-        <Star className={cn(sizes[size], isActive && 'fill-current')} />
+        <Star className={cn(sizes[size], isActive && 'fill-current')} aria-hidden="true" />
       </button>
     );
   };
 
   const renderMood = (rating: number) => {
     const isActive = rating === value;
+    const moodLabels = { 1: 'Very Low', 2: 'Low', 3: 'Neutral', 4: 'Good', 5: 'Excellent' };
     return (
       <button
         key={rating}
         type="button"
         onClick={() => !readonly && onChange?.(rating)}
         disabled={readonly}
+        aria-label={`Set mood to ${moodLabels[rating as keyof typeof moodLabels]}`}
+        aria-pressed={isActive}
         className={cn(
           'transition-all duration-200',
-          !readonly && 'hover:scale-110 focus:outline-none',
+          !readonly && 'hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded',
           getMoodColor(rating, isActive)
         )}
       >
@@ -96,13 +101,15 @@ export function Rating({
         type="button"
         onClick={() => !readonly && onChange?.(rating)}
         disabled={readonly}
+        aria-label={`Rate ${rating} out of ${max} hearts`}
+        aria-pressed={isActive}
         className={cn(
           'transition-all duration-200',
-          !readonly && 'hover:scale-110 focus:outline-none',
+          !readonly && 'hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded',
           isActive ? 'text-pink-500' : 'text-gray-300'
         )}
       >
-        <Heart className={cn(sizes[size], isActive && 'fill-current')} />
+        <Heart className={cn(sizes[size], isActive && 'fill-current')} aria-hidden="true" />
       </button>
     );
   };
