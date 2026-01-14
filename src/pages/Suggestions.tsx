@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
@@ -29,6 +30,7 @@ import {
 import type { ActivitySuggestion } from '../types';
 
 export function Suggestions() {
+  const navigate = useNavigate();
   const { recipients, loading: recipientsLoading } = useRecipients();
   const activeRecipient = recipients[0];
   const { interactions } = useInteractions(activeRecipient?.id);
@@ -91,27 +93,8 @@ export function Suggestions() {
         timeOfDay
       );
 
+      // Only show in fresh suggestions, don't save to DB yet
       setSuggestions(result.suggestions);
-
-      // Save suggestions to database
-      for (const suggestion of result.suggestions) {
-        try {
-          await createSuggestion({
-            recipient_id: activeRecipient.id,
-            suggestion_text: suggestion.activity,
-            reasoning: suggestion.reasoning,
-            context: {
-              time_of_day: timeOfDay,
-              confidence: suggestion.confidence,
-              estimated_duration: suggestion.estimated_duration,
-            },
-          });
-        } catch (err) {
-          console.error('Failed to save suggestion:', err);
-        }
-      }
-
-      await loadSavedSuggestions();
     } catch (err) {
       setError('Failed to generate suggestions. Please try again.');
       console.error('Failed to generate suggestions:', err);
@@ -120,15 +103,14 @@ export function Suggestions() {
     }
   };
 
-  const handleAccept = async (suggestionId: string) => {
-    try {
-      await updateSuggestionStatus(suggestionId, 'accepted');
-      await loadSavedSuggestions();
-      toast.success('Suggestion accepted!');
-    } catch (err) {
-      console.error('Failed to accept suggestion:', err);
-      toast.error('Failed to accept suggestion');
-    }
+  const handleAccept = async (suggestion: ActivitySuggestion) => {
+    // Navigate to log interaction page with pre-filled activity
+    navigate('/memory-book/new', { 
+      state: { 
+        suggestedActivity: suggestion.suggestion_text,
+        suggestionId: suggestion.id 
+      } 
+    });
   };
 
   const handleReject = async (suggestionId: string) => {
@@ -145,8 +127,8 @@ export function Suggestions() {
   const handleTryFreshSuggestion = async (suggestion: any) => {
     if (!activeRecipient) return;
     try {
-      // Save to database first
-      const saved = await createSuggestion({
+      // Save to database as pending
+      await createSuggestion({
         recipient_id: activeRecipient.id,
         suggestion_text: suggestion.activity,
         reasoning: suggestion.reasoning,
@@ -155,16 +137,14 @@ export function Suggestions() {
           estimated_duration: suggestion.estimated_duration,
         },
       });
-      // Then mark as accepted
-      if (saved?.id) {
-        await updateSuggestionStatus(saved.id, 'accepted');
-      }
       // Refresh suggestions
       await loadSavedSuggestions();
       // Remove from fresh suggestions
       setSuggestions((prev) => prev.filter((s) => s.activity !== suggestion.activity));
+      toast.success('Added to pending activities!');
     } catch (err) {
       console.error('Failed to save fresh suggestion:', err);
+      toast.error('Failed to save suggestion');
     }
   };
 
@@ -223,7 +203,6 @@ export function Suggestions() {
   }
 
   const pendingSuggestions = savedSuggestions.filter((s) => s.status === 'pending');
-  const acceptedSuggestions = savedSuggestions.filter((s) => s.status === 'accepted');
 
   return (
     <div className="space-y-6">
@@ -352,7 +331,10 @@ export function Suggestions() {
       {/* Pending Suggestions */}
       {pendingSuggestions.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Suggestions</h2>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Ready to Try</h2>
+            <Badge variant="primary" size="sm">{pendingSuggestions.length}</Badge>
+          </div>
           <div className="space-y-3">
             {pendingSuggestions.map((suggestion) => (
               <Card key={suggestion.id} variant="elevated" padding="md">
@@ -362,12 +344,14 @@ export function Suggestions() {
                     {suggestion.reasoning && (
                       <p className="text-sm text-gray-600 mt-1">{suggestion.reasoning}</p>
                     )}
+                    <p className="text-xs text-purple-600 mt-2">Click checkmark to log this activity →</p>
                   </div>
                   <div className="flex gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAccept(suggestion.id)}
+                      onClick={() => handleAccept(suggestion)}
+                      title="Log this activity"
                     >
                       <Check className="h-4 w-4 text-green-600" />
                     </Button>
@@ -375,31 +359,10 @@ export function Suggestions() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleReject(suggestion.id)}
+                      title="Dismiss"
                     >
                       <X className="h-4 w-4 text-red-600" />
                     </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Accepted Suggestions */}
-      {acceptedSuggestions.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Accepted Activities</h2>
-          <div className="space-y-3">
-            {acceptedSuggestions.slice(0, 5).map((suggestion) => (
-              <Card key={suggestion.id} variant="default" padding="md">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                    <Check className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{suggestion.suggestion_text}</h3>
-                    <p className="text-xs text-gray-500">Accepted</p>
                   </div>
                 </div>
               </Card>

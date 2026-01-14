@@ -56,18 +56,21 @@ ${
     : 'No recent activities logged yet'
 }
 
-Based on this information, suggest 3 personalized activities that would be:
+Based on this information, suggest EXACTLY 3 unique and diverse personalized activities that would be:
 1. Meaningful and joyful for ${recipientName}
 2. Appropriate for the ${timeOfDay || 'morning'}
 3. Respectful of their dignity and preferences
 4. Likely to create a positive moment
+5. Different from each other (vary activity types)
+
+IMPORTANT: Provide exactly 3 different suggestions, no duplicates.
 
 Respond in JSON format:
 {
   "suggestions": [
     {
-      "activity": "Brief activity name",
-      "reasoning": "Why this activity would work well right now",
+      "activity": "Brief activity name (max 6 words)",
+      "reasoning": "Why this activity would work well right now (1 sentence)",
       "estimated_duration": "e.g., 15-30 minutes",
       "confidence": 0.0-1.0
     }

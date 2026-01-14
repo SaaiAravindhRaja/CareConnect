@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
 import { useRecipients } from '../hooks/useRecipient';
@@ -7,7 +7,7 @@ import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { extractPreferencesFromInteraction, generateInsightsFromInteraction } from '../lib/openai';
-import { uploadPhoto, getPhotoUrl } from '../lib/supabase';
+import { uploadPhoto, getPhotoUrl, updateSuggestionStatus } from '../lib/supabase';
 import {
   Card,
   CardContent,
@@ -53,6 +53,7 @@ const suggestedTags = [
 
 export function LogInteraction() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { recipients, loading: recipientsLoading } = useRecipients();
   const activeRecipient = recipients[0];
   const { addInteraction } = useInteractions(activeRecipient?.id);
@@ -71,10 +72,14 @@ export function LogInteraction() {
   const [tagInput, setTagInput] = useState('');
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  
+  // Get pre-filled suggestion from navigation state
+  const suggestedActivity = location.state?.suggestedActivity;
+  const suggestionId = location.state?.suggestionId;
 
   const [formData, setFormData] = useState<InteractionFormData>({
     activity_type: 'activity',
-    title: '',
+    title: suggestedActivity || '',
     description: '',
     mood_rating: 3 as MoodLevel,
     success_level: 3 as MoodLevel,
@@ -201,6 +206,15 @@ export function LogInteraction() {
 
       // Extract preferences in background
       if (interaction) {
+        // Mark suggestion as completed if came from suggestion
+        if (suggestionId) {
+          try {
+            await updateSuggestionStatus(suggestionId, 'completed');
+          } catch (err) {
+            console.error('Failed to update suggestion status:', err);
+          }
+        }
+
         // Extract preferences from the interaction
         const newPreferences = await extractPreferencesFromInteraction(interaction, preferences);
 
@@ -257,11 +271,17 @@ export function LogInteraction() {
         <Button variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Log a Moment</h1>
           <p className="text-gray-600">
             Capture an interaction with {activeRecipient.name}
           </p>
+          {suggestedActivity && (
+            <Badge variant="primary" className="mt-2">
+              <Sparkles className="h-3 w-3 mr-1" />
+              From Suggestion
+            </Badge>
+          )}
         </div>
       </div>
 

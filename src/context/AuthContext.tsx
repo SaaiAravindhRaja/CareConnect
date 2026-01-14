@@ -124,14 +124,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Get current origin for email confirmation redirect
-      const redirectTo = `${window.location.origin}/dashboard`;
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectTo,
+          // Skip email verification for testing
+          emailRedirectTo: undefined,
         },
       });
 
