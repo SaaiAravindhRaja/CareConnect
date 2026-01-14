@@ -271,11 +271,25 @@ function InteractionCard({ interaction }: { interaction: Interaction }) {
             </div>
           )}
 
-          {/* Photos indicator */}
+          {/* Photos gallery */}
           {interaction.photos && interaction.photos.length > 0 && (
-            <div className="flex items-center gap-1 mt-2 text-gray-500">
-              <Image className="h-4 w-4" />
-              <span className="text-xs">{interaction.photos.length} photo(s)</span>
+            <div className="mt-3">
+              <div className="grid grid-cols-3 gap-2">
+                {interaction.photos.slice(0, 6).map((photoUrl, index) => (
+                  <img
+                    key={index}
+                    src={photoUrl}
+                    alt={`Memory ${index + 1}`}
+                    className="w-full h-20 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                    onClick={() => window.open(photoUrl, '_blank')}
+                  />
+                ))}
+              </div>
+              {interaction.photos.length > 6 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  +{interaction.photos.length - 6} more photo(s)
+                </p>
+              )}
             </div>
           )}
 

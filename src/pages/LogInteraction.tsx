@@ -6,6 +6,7 @@ import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { extractPreferencesFromInteraction, generateInsightsFromInteraction } from '../lib/openai';
+import { uploadPhoto, getPhotoUrl } from '../lib/supabase';
 import {
   Card,
   CardContent,
@@ -17,7 +18,7 @@ import {
   Badge,
   Spinner,
 } from '../components/ui';
-import { ArrowLeft, Save, Plus, Sparkles, Mic, MicOff } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Sparkles, Mic, MicOff, Camera, X as XIcon } from 'lucide-react';
 import type { ActivityType, MoodLevel, InteractionFormData } from '../types';
 
 const activityTypes: { value: ActivityType; label: string }[] = [
@@ -67,6 +68,8 @@ export function LogInteraction() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState<InteractionFormData>({
     activity_type: 'activity',
@@ -105,6 +108,40 @@ export function LogInteraction() {
     });
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !activeRecipient) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const newPhotoUrls: string[] = [];
+
+      for (const file of Array.from(files)) {
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${activeRecipient.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        // Upload to Supabase Storage
+        await uploadPhoto(file, fileName);
+
+        // Get public URL
+        const publicUrl = getPhotoUrl(fileName);
+        newPhotoUrls.push(publicUrl);
+      }
+
+      setUploadedPhotos((prev) => [...prev, ...newPhotoUrls]);
+    } catch (error) {
+      console.error('Failed to upload photo:', error);
+      alert('Failed to upload photo. Please try again.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = (photoUrl: string) => {
+    setUploadedPhotos((prev) => prev.filter((url) => url !== photoUrl));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeRecipient) return;
@@ -119,10 +156,11 @@ export function LogInteraction() {
       };
       const aiInsight = await generateInsightsFromInteraction(tempInteraction as any);
 
-      // Create the interaction WITH the AI insight
+      // Create the interaction WITH the AI insight and photos
       const interaction = await addInteraction({
         ...formData,
         ai_insights: aiInsight || undefined,
+        photos: uploadedPhotos,
       });
 
       // Celebrate beautiful moments with confetti!
@@ -327,6 +365,62 @@ export function LogInteraction() {
                   variant="hearts"
                 />
                 <p className="text-xs text-gray-500 mt-1">Energy level?</p>
+              </div>
+            </div>
+
+            {/* Photo Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Photos
+              </label>
+              <div className="space-y-3">
+                {uploadedPhotos.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {uploadedPhotos.map((photoUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={photoUrl}
+                          alt={`Uploaded ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(photoUrl)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    id="photo-upload"
+                    disabled={isUploadingPhoto}
+                  />
+                  <label htmlFor="photo-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isUploadingPhoto}
+                      className="w-full cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById('photo-upload')?.click();
+                      }}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      {isUploadingPhoto ? 'Uploading...' : 'Add Photos'}
+                    </Button>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">Capture special moments together</p>
+                </div>
               </div>
             </div>
 
