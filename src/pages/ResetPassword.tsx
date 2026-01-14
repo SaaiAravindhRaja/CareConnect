@@ -21,10 +21,22 @@ export function ResetPassword() {
   // Validate reset token on mount
   useEffect(() => {
     const validateToken = async () => {
+      // Check for the token_hash or code in the URL
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
       const code = searchParams.get('code');
-      const token = searchParams.get('token');
 
-      if (!code && !token) {
+      // Debug: Log all URL parameters
+      console.log('Reset password URL params:', {
+        tokenHash,
+        type,
+        code,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
+
+      // For password recovery, Supabase might send different parameters
+      if (!code && !tokenHash && type !== 'recovery') {
+        console.error('Missing required parameters');
         setError('Invalid or missing reset token. Please request a new password reset link.');
         setIsValidating(false);
         return;
@@ -33,10 +45,12 @@ export function ResetPassword() {
       // If we have a code, exchange it for a session
       if (code) {
         try {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
             console.error('Token exchange error:', exchangeError);
             setError('Invalid or expired reset link. Please request a new password reset.');
+          } else if (data?.session) {
+            console.log('Session established successfully');
           }
         } catch (err) {
           console.error('Token validation error:', err);
