@@ -36,3 +36,8 @@ coverage
 *.tsbuildinfo
 .eslintcache
 .vercel
+
+# Claude instructions (local only)
+Claude.md
+CLAUDE.md
+claude.md
