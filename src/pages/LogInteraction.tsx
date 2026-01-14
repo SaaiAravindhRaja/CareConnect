@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import toast from 'react-hot-toast';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
@@ -219,13 +220,17 @@ export function LogInteraction() {
         }
       }
 
-      // Small delay to enjoy the confetti
+      // Success toast
       if (isBeautifulMoment) {
+        toast.success('🎉 Beautiful moment captured!');
         await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        toast.success('Moment saved successfully!');
       }
 
       navigate('/memory-book');
     } catch (error) {
+      toast.error('Failed to save moment. Please try again.');
       console.error('Failed to log interaction:', error);
     } finally {
       setIsSubmitting(false);

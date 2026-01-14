@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useRecipients, useRecipient } from '../hooks/useRecipient';
 import { useAuth } from '../context/AuthContext';
 import { seedDemoData } from '../lib/seedDemoData';
@@ -97,8 +98,10 @@ export function Profile() {
       });
       setEditingRecipient(null);
       setEditFormData({ name: '', age: '', communication_style: '', important_notes: '' });
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to update recipient:', error);
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

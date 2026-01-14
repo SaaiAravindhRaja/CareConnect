@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
@@ -30,7 +32,7 @@ import { formatRelativeTime, getMoodEmoji, getActivityIcon } from '../lib/utils'
 export function Dashboard() {
   const { recipients, loading: recipientsLoading } = useRecipients();
   const activeRecipient = recipients[0];
-  const { interactions, stats, loading: interactionsLoading } = useInteractions(activeRecipient?.id);
+  const { interactions, stats, loading: interactionsLoading, refresh } = useInteractions(activeRecipient?.id);
   const { highConfidence } = usePreferences(activeRecipient?.id);
   const [copied, setCopied] = useState(false);
 
@@ -49,6 +51,37 @@ export function Dashboard() {
       alert(`Share this link with family:\n${shareUrl}`);
     }
   };
+
+  // Real-time subscription for live updates
+  useEffect(() => {
+    if (!activeRecipient?.id) return;
+
+    const channel = supabase
+      .channel('interactions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'interactions',
+          filter: `recipient_id=eq.${activeRecipient.id}`,
+        },
+        (payload) => {
+          // Show toast notification for new moment
+          toast.success('📝 New moment logged!', {
+            duration: 4000,
+          });
+
+          // Refresh interactions to update stats and list
+          refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeRecipient?.id, refresh]);
 
   if (recipientsLoading) {
     return (
@@ -81,7 +114,13 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Good day! 👋</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">Good day! 👋</h1>
+            <Badge variant="success" size="sm" className="animate-pulse">
+              <div className="h-2 w-2 bg-green-500 rounded-full mr-1.5"></div>
+              Live
+            </Badge>
+          </div>
           <p className="text-gray-600">Here's how {activeRecipient.name}'s care is going</p>
         </div>
         <Link to="/memory-book/new">

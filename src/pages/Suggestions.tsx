@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
@@ -110,8 +111,10 @@ export function Suggestions() {
     try {
       await updateSuggestionStatus(suggestionId, 'accepted');
       await loadSavedSuggestions();
+      toast.success('Suggestion accepted!');
     } catch (err) {
       console.error('Failed to accept suggestion:', err);
+      toast.error('Failed to accept suggestion');
     }
   };
 
@@ -119,8 +122,10 @@ export function Suggestions() {
     try {
       await updateSuggestionStatus(suggestionId, 'rejected');
       await loadSavedSuggestions();
+      toast('Suggestion dismissed');
     } catch (err) {
       console.error('Failed to reject suggestion:', err);
+      toast.error('Failed to reject suggestion');
     }
   };
 
