@@ -181,7 +181,7 @@ export function Analytics() {
         <EmptyState
           icon={<TrendingUp className="h-8 w-8" />}
           title="No care recipient selected"
-          description="Add a care recipient first to see analytics."
+          description="Please add a care recipient in the Dashboard to see analytics."
         />
       </Card>
     );
