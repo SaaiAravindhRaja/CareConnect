@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { analyzeCaregiverBurnout, type BurnoutAnalysis } from '../lib/openai';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePreferences } from '../hooks/usePreferences';
+import { BurnoutWarning } from '../components/BurnoutWarning';
 import {
   Card,
   CardHeader,
@@ -35,6 +37,7 @@ export function Dashboard() {
   const { interactions, stats, loading: interactionsLoading, refresh } = useInteractions(activeRecipient?.id);
   const { highConfidence } = usePreferences(activeRecipient?.id);
   const [copied, setCopied] = useState(false);
+  const [burnoutAnalysis, setBurnoutAnalysis] = useState<BurnoutAnalysis | null>(null);
 
   const handleShareWithFamily = async () => {
     if (!activeRecipient) return;
@@ -83,6 +86,17 @@ export function Dashboard() {
     };
   }, [activeRecipient?.id, refresh]);
 
+  // Analyze caregiver burnout
+  useEffect(() => {
+    if (interactions.length >= 7) {
+      analyzeCaregiverBurnout(interactions)
+        .then(setBurnoutAnalysis)
+        .catch((error) => {
+          console.error('Failed to analyze burnout:', error);
+        });
+    }
+  }, [interactions]);
+
   if (recipientsLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -130,6 +144,11 @@ export function Dashboard() {
           </Button>
         </Link>
       </div>
+
+      {/* Burnout Warning */}
+      {burnoutAnalysis && activeRecipient && (
+        <BurnoutWarning analysis={burnoutAnalysis} recipientName={activeRecipient.name} />
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

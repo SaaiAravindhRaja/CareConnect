@@ -95,6 +95,43 @@ export const generateInsightsFromInteraction = async (
   }
 };
 
+export interface BurnoutAnalysis {
+  riskScore: number;
+  signals: string[];
+  recommendations: string[];
+  aiInsight?: string;
+}
+
+export const analyzeCaregiverBurnout = async (
+  interactions: Interaction[]
+): Promise<BurnoutAnalysis> => {
+  try {
+    const response = await fetch('/api/analyze-burnout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        interactions,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error analyzing burnout:', error);
+    // Fallback to basic analysis
+    return {
+      riskScore: 0,
+      signals: ['Unable to analyze burnout risk at this time'],
+      recommendations: ['Keep logging your caregiving moments to build insights'],
+    };
+  }
+};
+
 // Mock suggestions for when API is not available
 function getMockSuggestions(
   recipientName: string,
