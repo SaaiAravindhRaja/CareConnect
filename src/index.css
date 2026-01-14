@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Custom colors for CareConnect */
+  --color-primary-50: #fdf4ff;
+  --color-primary-100: #fae8ff;
+  --color-primary-200: #f5d0fe;
+  --color-primary-300: #f0abfc;
+  --color-primary-400: #e879f9;
+  --color-primary-500: #d946ef;
+  --color-primary-600: #c026d3;
+  --color-primary-700: #a21caf;
+  --color-primary-800: #86198f;
+  --color-primary-900: #701a75;
+
+  --color-warmth-50: #fff7ed;
+  --color-warmth-100: #ffedd5;
+  --color-warmth-200: #fed7aa;
+  --color-warmth-300: #fdba74;
+  --color-warmth-400: #fb923c;
+  --color-warmth-500: #f97316;
+  --color-warmth-600: #ea580c;
+  --color-warmth-700: #c2410c;
+  --color-warmth-800: #9a3412;
+  --color-warmth-900: #7c2d12;
+
+  --color-care-50: #f0fdf4;
+  --color-care-100: #dcfce7;
+  --color-care-200: #bbf7d0;
+  --color-care-300: #86efac;
+  --color-care-400: #4ade80;
+  --color-care-500: #22c55e;
+  --color-care-600: #16a34a;
+  --color-care-700: #15803d;
+  --color-care-800: #166534;
+  --color-care-900: #14532d;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+textarea,
+select {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Page transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Apply fade-in to main content */
+main {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hover lift effect for cards */
+[data-hover="true"] {
+  @apply transition-transform duration-200;
+}
+
+[data-hover="true"]:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* Focus ring styles */
+:focus-visible {
+  @apply outline-none ring-2 ring-purple-500 ring-offset-2;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}
+
+/* Loading shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Success animation */
+@keyframes success {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-animation {
+  animation: success 0.3s ease-in-out;
+}
