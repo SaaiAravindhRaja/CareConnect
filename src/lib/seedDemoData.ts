@@ -3,9 +3,29 @@ import { supabase } from './supabase';
 /**
  * Seeds demo data for Maria Santos (caregiver) and Mr. Chen Wei Lin (care recipient)
  * Creates 2 weeks of realistic interactions, preferences, and suggestions
+ * Idempotent: Checks if demo data already exists before creating
  */
 export async function seedDemoData(userId: string, caregiverId: string) {
   try {
+    console.log('🌱 Checking for existing demo data...');
+
+    // Check if Mr. Chen Wei Lin already exists for this user
+    const { data: existingRecipient, error: checkError } = await supabase
+      .from('care_recipients')
+      .select('id')
+      .eq('created_by', userId)
+      .eq('name', 'Mr. Chen Wei Lin')
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking for existing data:', checkError);
+    }
+
+    if (existingRecipient) {
+      console.log('✅ Demo data already exists, skipping seed');
+      return { success: true, recipient: existingRecipient, alreadyExists: true };
+    }
+
     console.log('🌱 Seeding demo data...');
 
     // 1. Create Mr. Chen Wei Lin (care recipient)
