@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useRecipients } from '../hooks/useRecipient';
 import { useInteractions } from '../hooks/useInteractions';
-import { Card, CardHeader, CardTitle, CardContent, Spinner, EmptyState } from '../components/ui';
-import { TrendingUp, Activity, Calendar, Target } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Spinner, EmptyState, Badge } from '../components/ui';
+import { TrendingUp, Activity, Calendar, Target, Brain, Sparkles } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -120,6 +120,51 @@ export function Analytics() {
       { time: 'Afternoon', interactions: hours.afternoon },
       { time: 'Evening', interactions: hours.evening },
     ];
+  }, [interactions]);
+
+  // Emotional insights - triggers and patterns
+  const emotionalTriggers = useMemo(() => {
+    const triggers = interactions
+      .filter((i) => i.mood_rating && i.mood_rating >= 4)
+      .reduce(
+        (acc, i) => {
+          if (!acc[i.activity_type]) {
+            acc[i.activity_type] = { positive: 0, total: 0, avgMood: 0, moodSum: 0 };
+          }
+          acc[i.activity_type].positive++;
+          acc[i.activity_type].total++;
+          acc[i.activity_type].moodSum += i.mood_rating || 0;
+          return acc;
+        },
+        {} as Record<string, { positive: number; total: number; avgMood: number; moodSum: number }>
+      );
+
+    // Calculate all activities for totals
+    interactions.forEach((i) => {
+      if (!triggers[i.activity_type]) {
+        triggers[i.activity_type] = { positive: 0, total: 0, avgMood: 0, moodSum: 0 };
+      }
+      if (!triggers[i.activity_type].total) {
+        triggers[i.activity_type].total = 0;
+      }
+      if (i.mood_rating && i.mood_rating < 4) {
+        triggers[i.activity_type].total++;
+      }
+      if (i.mood_rating) {
+        triggers[i.activity_type].moodSum += i.mood_rating;
+      }
+    });
+
+    return Object.entries(triggers)
+      .map(([activity, data]) => ({
+        activity: activity.charAt(0).toUpperCase() + activity.slice(1),
+        positiveRate: ((data.positive / data.total) * 100).toFixed(0),
+        avgMood: (data.moodSum / data.total).toFixed(1),
+        count: data.positive,
+      }))
+      .filter((t) => parseInt(t.positiveRate) >= 60)
+      .sort((a, b) => parseFloat(b.avgMood) - parseFloat(a.avgMood))
+      .slice(0, 5);
   }, [interactions]);
 
   if (loading) {
@@ -319,6 +364,52 @@ export function Analytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Emotional Intelligence Insights */}
+      {emotionalTriggers.length > 0 && (
+        <Card variant="gradient" padding="lg">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-purple-600" />
+              <CardTitle>Emotional Intelligence Insights</CardTitle>
+              <Badge variant="primary" size="sm">
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI Analysis
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 mb-4">
+              Activities that consistently create positive emotional responses for {activeRecipient.name}
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {emotionalTriggers.map((trigger, index) => (
+                <div
+                  key={index}
+                  className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-purple-100"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900">{trigger.activity}</h3>
+                    <Badge variant="success" size="sm">
+                      {trigger.positiveRate}%
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Avg Mood Rating</span>
+                      <span className="font-medium text-purple-600">{trigger.avgMood}/5</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Positive Moments</span>
+                      <span className="font-medium text-gray-900">{trigger.count}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
