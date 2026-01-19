@@ -17,6 +17,7 @@ import {
   Search,
   Calendar,
   Star,
+  Trash2,
 } from 'lucide-react';
 import {
   formatDate,
@@ -43,11 +44,25 @@ const activityTypes: { value: ActivityType | ''; label: string }[] = [
 export function MemoryBook() {
   const { recipients, loading: recipientsLoading } = useRecipients();
   const activeRecipient = recipients[0];
-  const { interactions, loading: interactionsLoading } = useInteractions(activeRecipient?.id);
+  const { interactions, loading: interactionsLoading, deleteInteraction } = useInteractions(activeRecipient?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<ActivityType | ''>('');
   const [filterMood, setFilterMood] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this moment?')) {
+      try {
+        setDeletingId(id);
+        await deleteInteraction(id);
+      } catch (error) {
+        console.error('Failed to delete interaction:', error);
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
 
   const filteredInteractions = interactions.filter((interaction) => {
     const matchesSearch =
@@ -180,7 +195,12 @@ export function MemoryBook() {
               </div>
               <div className="space-y-3">
                 {dateInteractions.map((interaction) => (
-                  <InteractionCard key={interaction.id} interaction={interaction} />
+                  <InteractionCard
+                    key={interaction.id}
+                    interaction={interaction}
+                    onDelete={handleDelete}
+                    isDeleting={deletingId === interaction.id}
+                  />
                 ))}
               </div>
             </div>
@@ -191,7 +211,15 @@ export function MemoryBook() {
   );
 }
 
-function InteractionCard({ interaction }: { interaction: Interaction }) {
+function InteractionCard({
+  interaction,
+  onDelete,
+  isDeleting,
+}: {
+  interaction: Interaction;
+  onDelete: (id: string) => void;
+  isDeleting: boolean;
+}) {
   const isBeautifulMoment =
     (interaction.mood_rating || 0) >= 4 && (interaction.success_level || 0) >= 4;
 
@@ -200,12 +228,26 @@ function InteractionCard({ interaction }: { interaction: Interaction }) {
       variant={isBeautifulMoment ? 'gradient' : 'elevated'}
       padding="md"
       hover
-      className="cursor-pointer"
+      className="cursor-pointer group relative"
     >
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(interaction.id);
+          }}
+          loading={isDeleting}
+          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="flex items-start gap-4">
         <div className="text-3xl">{getActivityIcon(interaction.activity_type)}</div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-2 pr-8">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-semibold text-gray-900">

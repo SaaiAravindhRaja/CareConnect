@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCareRecipients, getCareRecipient, createCareRecipient, updateCareRecipient } from '../lib/supabase';
+import { getCareRecipients, getCareRecipient, createCareRecipient, updateCareRecipient, deleteCareRecipient } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { CareRecipient } from '../types';
 
@@ -73,7 +73,17 @@ export function useRecipients() {
     }
   };
 
-  return { recipients, loading, error, refresh: loadRecipients, addRecipient, updateRecipient };
+  const deleteRecipient = async (recipientId: string) => {
+    try {
+      await deleteCareRecipient(recipientId);
+      setRecipients((prev) => prev.filter((r) => r.id !== recipientId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete recipient');
+      throw err;
+    }
+  };
+
+  return { recipients, loading, error, refresh: loadRecipients, addRecipient, updateRecipient, deleteRecipient };
 }
 
 export function useRecipient(recipientId: string | undefined) {

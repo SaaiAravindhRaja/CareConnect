@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getInteractions, createInteraction } from '../lib/supabase';
+import { getInteractions, createInteraction, deleteInteraction as deleteInteractionApi } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Interaction, InteractionFormData } from '../types';
 
@@ -58,6 +58,16 @@ export function useInteractions(recipientId: string | undefined) {
     }
   };
 
+  const deleteInteraction = async (interactionId: string) => {
+    try {
+      await deleteInteractionApi(interactionId);
+      setInteractions((prev) => prev.filter((i) => i.id !== interactionId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete interaction');
+      throw err;
+    }
+  };
+
   // Get stats for dashboard
   const stats = {
     total: interactions.length,
@@ -87,5 +97,5 @@ export function useInteractions(recipientId: string | undefined) {
     ),
   };
 
-  return { interactions, loading, error, refresh: loadInteractions, addInteraction, stats };
+  return { interactions, loading, error, refresh: loadInteractions, addInteraction, deleteInteraction, stats };
 }
