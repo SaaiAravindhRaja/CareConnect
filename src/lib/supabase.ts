@@ -119,6 +119,14 @@ export const updateCareRecipient = async (
   return data;
 };
 
+export const deleteCareRecipient = async (recipientId: string) => {
+  const { error } = await supabase
+    .from('care_recipients')
+    .delete()
+    .eq('id', recipientId);
+  if (error) throw error;
+};
+
 export const createCareRecipient = async (
   recipientData: {
     name: string;
@@ -188,6 +196,14 @@ export const createInteraction = async (interaction: {
     .single();
   if (error) throw error;
   return data;
+};
+
+export const deleteInteraction = async (interactionId: string) => {
+  const { error } = await supabase
+    .from('interactions')
+    .delete()
+    .eq('id', interactionId);
+  if (error) throw error;
 };
 
 // Preference helpers
