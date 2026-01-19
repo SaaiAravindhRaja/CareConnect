@@ -32,8 +32,6 @@ import {
   Sparkles,
   Share2,
   Check,
-  User,
-  Save,
   X,
   Edit2
 } from 'lucide-react';
@@ -407,7 +405,7 @@ export function Dashboard() {
 
                 {activeRecipient.communication_style && (
                   <div className="pt-2">
-                    <Badge variant="secondary" className="bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]">
+                    <Badge variant="default" className="bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]">
                       {activeRecipient.communication_style}
                     </Badge>
                   </div>
@@ -485,7 +483,7 @@ export function Dashboard() {
               </div>
             ) : (
                <div className="divide-y divide-[#e8e8ed]">
-                {interactions.slice(0, 5).map((interaction, idx) => (
+                {interactions.slice(0, 5).map((interaction) => (
                   <div
                     key={interaction.id}
                     className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"

@@ -18,8 +18,6 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      // Disable email verification for testing
-      autoConfirm: true,
     },
   }
 );
