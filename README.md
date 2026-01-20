@@ -1,6 +1,16 @@
-# CareConnect
+<p align="center">
+  <img src="./assets/careconnect-logo.png" alt="CareConnect Logo" width="300">
+</p>
 
-**AI-Powered Caregiver-Care Recipient Relationship Platform**
+<h1 align="center">CareConnect</h1>
+
+<p align="center">
+  <strong>AI-Powered Caregiver-Care Recipient Relationship Platform</strong>
+</p>
+
+<p align="center">
+  <em>Helping caregivers provide respectful, meaningful, and joyful care</em>
+</p>
 
 ---
 
