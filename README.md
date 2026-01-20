@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/careconnect-logo.png" alt="CareConnect Logo" width="300">
+  <img src="./src/assets/careconnect-logo.png" alt="CareConnect Logo" width="300">
 </p>
 
 <h1 align="center">CareConnect</h1>
