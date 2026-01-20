@@ -136,32 +136,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       if (!data.user) throw new Error('No user returned from signup');
 
-      // Create caregiver profile
-      const { data: caregiverData, error: profileError } = await supabase
-        .from('caregivers')
-        .insert({
-          user_id: data.user.id,
-          name,
-          email,
-        })
-        .select()
-        .single();
+      // If session exists (email verification not required or auto-confirmed), create profile immediately
+      if (data.session) {
+        // Create caregiver profile
+        const { data: caregiverData, error: profileError } = await supabase
+          .from('caregivers')
+          .insert({
+            user_id: data.user.id,
+            name,
+            email,
+          })
+          .select()
+          .single();
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
 
-      // Automatically seed demo data for new users
-      if (caregiverData) {
-        try {
-          console.log('Auto-seeding demo data for new user...');
-          await seedDemoData(data.user.id, caregiverData.id);
-          console.log('✅ Demo data seeded successfully');
-        } catch (seedError) {
-          console.error('Failed to seed demo data:', seedError);
-          // Don't throw - seeding failure shouldn't prevent signup
+        // Automatically seed demo data for new users
+        if (caregiverData) {
+          try {
+            console.log('Auto-seeding demo data for new user...');
+            await seedDemoData(data.user.id, caregiverData.id);
+            console.log('✅ Demo data seeded successfully');
+          } catch (seedError) {
+            console.error('Failed to seed demo data:', seedError);
+            // Don't throw - seeding failure shouldn't prevent signup
+          }
         }
-      }
 
-      await loadCaregiver(data.user.id);
+        await loadCaregiver(data.user.id);
+      } else {
+        // Email verification required - profile will be created on first login via loadCaregiver
+        setState((prev) => ({ ...prev, loading: false }));
+      }
     } catch (error) {
       setState((prev) => ({
         ...prev,

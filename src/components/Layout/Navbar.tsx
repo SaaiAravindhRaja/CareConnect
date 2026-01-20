@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Avatar, Button } from '../ui';
+import { Button } from '../ui';
 import {
   Home,
   BookOpen,

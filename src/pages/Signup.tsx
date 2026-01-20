@@ -84,8 +84,8 @@ export function Signup() {
                   Check Your Email!
                 </h3>
                 <p className="text-sm text-[#5C5550]/80 leading-relaxed px-4">
-                  We've sent a verification link to <span className="font-semibold text-[#D4725A]">{email}</span>.
-                  Please click the link in the email to verify your account before signing in.
+                  Account successfully created!
+                  Please log in with your email and password.
                 </p>
                 <div className="pt-4 border-t border-[#D4725A]/10">
                   <p className="text-xs text-[#8B7355] italic">
